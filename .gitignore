@@ -1,0 +1,10 @@
+# Temporary Screenshots
+*.png
+*.jpg.tmp
+
+# Caches & Logs
+.DS_Store
+*.log
+node_modules/
+scratch/
+.tempmediaStorage/
