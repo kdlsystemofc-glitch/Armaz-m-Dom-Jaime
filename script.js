@@ -1,166 +1,123 @@
 /**
- * ARMAZÉM DOM JAIME — CINEMATIC EXPERIENCE & INTERACTION SCRIPT
- * Phase 07.1 — Motion, Scroll Reveals & Real-time Features
+ * ARMAZÉM DOM JAIME — CONTEMPORARY BRAZILIAN FARM-TO-TABLE EDITORIAL
+ * Dynamic Status Badge, Scroll Progress & Smooth Entrances
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  initNavbarScroll();
-  initOperatingHoursStatus();
+  initRealtimeStatus();
+  initScrollEffects();
   initMobileFloatingBar();
-  initScrollProgress();
   initScrollReveals();
-  initSmoothScroll();
 });
 
 /**
- * 1. Navbar Scroll Blur & Scroll State
+ * Real-Time Restaurant Operating Hours Check
+ * Mon-Sat: 11:00 to 16:00 (Closed Sundays)
  */
-function initNavbarScroll() {
-  const header = document.getElementById('nav-header');
-  if (!header) return;
-
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 40) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
-    }
-  }, { passive: true });
-}
-
-/**
- * 2. Operating Hours Real-time Check
- * Business Rules:
- * - Mon-Sat: Opens at 11:00 AM, serves lunch until 16:00 (or open for dinner events)
- * - Sunday: Closed
- */
-function initOperatingHoursStatus() {
+function initRealtimeStatus() {
+  const statusBadge = document.getElementById('nav-status-badge');
   const statusText = document.getElementById('status-text');
-  const statusDot = document.querySelector('.status-dot');
-  if (!statusText) return;
+  
+  if (!statusBadge || !statusText) return;
 
   const now = new Date();
-  const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const day = now.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
   const hour = now.getHours();
+  const minute = now.getMinutes();
+  const timeInMinutes = hour * 60 + minute;
 
-  if (day === 0) {
-    statusText.textContent = 'Fechado aos Domingos';
-    if (statusDot) {
-      statusDot.style.backgroundColor = '#9CA3AF';
-      statusDot.style.animation = 'none';
-    }
-  } else if (hour >= 11 && hour < 16) {
+  const openTime = 11 * 60; // 11:00 AM
+  const closeTime = 16 * 60; // 4:00 PM
+
+  const isSunday = (day === 0);
+  const isOpenHours = (timeInMinutes >= openTime && timeInMinutes < closeTime);
+
+  if (!isSunday && isOpenHours) {
+    statusBadge.style.borderColor = 'var(--brand-basil)';
+    statusBadge.style.backgroundColor = 'rgba(46, 82, 56, 0.08)';
+    statusBadge.style.color = 'var(--brand-basil)';
     statusText.textContent = '🟢 Aberto Agora — Servindo Almoço';
-  } else if (hour < 11) {
-    statusText.textContent = 'Fechado — Abre hoje às 11:00';
-    if (statusDot) {
-      statusDot.style.backgroundColor = '#C68A27';
-      statusDot.style.animation = 'none';
-    }
+  } else if (!isSunday && timeInMinutes < openTime) {
+    statusBadge.style.borderColor = 'var(--brand-ochre)';
+    statusBadge.style.backgroundColor = 'rgba(217, 130, 43, 0.08)';
+    statusBadge.style.color = 'var(--brand-ochre)';
+    statusText.textContent = '🟡 Fechado — Abre hoje às 11:00h';
   } else {
-    statusText.textContent = 'Fechado — Abre amanhã às 11:00';
-    if (statusDot) {
-      statusDot.style.backgroundColor = '#9CA3AF';
-      statusDot.style.animation = 'none';
-    }
+    statusBadge.style.borderColor = 'var(--text-muted)';
+    statusBadge.style.backgroundColor = 'rgba(92, 96, 104, 0.08)';
+    statusBadge.style.color = 'var(--text-muted)';
+    statusText.textContent = '⚪ Fechado — Abrimos de Seg a Sáb às 11h';
   }
 }
 
 /**
- * 3. Mobile Floating Action Bar Reveal on Scroll
+ * Scroll Header Class & Progress Indicator
+ */
+function initScrollEffects() {
+  const header = document.getElementById('nav-header');
+  
+  // Create Progress Bar
+  const progressBar = document.createElement('div');
+  progressBar.className = 'scroll-progress-bar';
+  document.body.appendChild(progressBar);
+
+  window.addEventListener('scroll', () => {
+    // Header shadow background
+    if (window.scrollY > 40) {
+      header?.classList.add('scrolled');
+    } else {
+      header?.classList.remove('scrolled');
+    }
+
+    // Scroll progress line
+    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    progressBar.style.width = `${scrolled}%`;
+  }, { passive: true });
+}
+
+/**
+ * Mobile Floating CTA Bar Visibility
  */
 function initMobileFloatingBar() {
   const floatingBar = document.getElementById('component-floating-cta');
   const heroSection = document.getElementById('section-hero');
+
   if (!floatingBar || !heroSection) return;
-
-  window.addEventListener('scroll', () => {
-    const heroBottom = heroSection.getBoundingClientRect().bottom;
-    
-    if (window.innerWidth <= 768 && heroBottom < 0) {
-      floatingBar.classList.add('visible');
-    } else {
-      floatingBar.classList.remove('visible');
-    }
-  }, { passive: true });
-}
-
-/**
- * 4. Top Scroll Progress Line Indicator
- */
-function initScrollProgress() {
-  let progressBar = document.getElementById('scroll-progress-bar');
-  if (!progressBar) {
-    progressBar = document.createElement('div');
-    progressBar.id = 'scroll-progress-bar';
-    progressBar.className = 'scroll-progress-bar';
-    document.body.appendChild(progressBar);
-  }
-
-  window.addEventListener('scroll', () => {
-    const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const scrolled = (window.scrollY / windowHeight) * 100;
-    progressBar.style.width = scrolled + '%';
-  }, { passive: true });
-}
-
-/**
- * 5. IntersectionObserver Cinematic Scroll Reveals with Safety Fallback
- */
-function initScrollReveals() {
-  const revealElements = document.querySelectorAll('.review-card, .buffet-card, .info-block, .feijoada-container, .ambience-img-card');
-
-  // Check if reduced motion is requested
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
-    revealElements.forEach(el => el.classList.add('revealed'));
-    return;
-  }
-  
-  revealElements.forEach((el, index) => {
-    el.classList.add('reveal-element');
-    el.style.transitionDelay = `${(index % 3) * 80}ms`;
-  });
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
+      // Show floating bar when scrolled past hero section on mobile
+      if (!entry.isIntersecting && window.innerWidth <= 768) {
+        floatingBar.classList.add('visible');
+      } else {
+        floatingBar.classList.remove('visible');
       }
     });
-  }, {
-    threshold: 0.1,
-    rootMargin: '0px 0px 50px 0px'
-  });
+  }, { threshold: 0.1 });
 
-  revealElements.forEach(el => observer.observe(el));
-
-  // Safety fallback: reveal all elements after 1.5 seconds if not yet triggered (e.g. static snapshot tools)
-  setTimeout(() => {
-    revealElements.forEach(el => el.classList.add('revealed'));
-  }, 1500);
+  observer.observe(heroSection);
 }
 
 /**
- * 6. Smooth Scroll for Anchor Links
+ * Intersection Observer Scroll Reveals with Fallback
  */
-function initSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-      const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
-      const targetElement = document.querySelector(targetId);
-      if (targetElement) {
-        e.preventDefault();
-        const headerHeight = 72;
-        const elementPosition = targetElement.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+function initScrollReveals() {
+  const revealTargets = document.querySelectorAll('section, article, .manifesto-col, .point-item');
 
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
+  revealTargets.forEach(target => {
+    target.classList.add('reveal-element');
+  });
+
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target);
       }
     });
-  });
+  }, { threshold: 0.08 });
+
+  revealTargets.forEach(target => revealObserver.observe(target));
 }
